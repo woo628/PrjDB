@@ -26,22 +26,85 @@ public class TestTUser {
 			System.out.println("선택:");
 			String choice = sc.nextLine();
 			
+			TUserDTO tuser = null;
+			
 			switch(choice) {
-			case "1": break;
-			case "2": break;
-			case "3": TUserDTO tuser = inputData(); int aftcnt = addTUser(tuser); 
-							System.out.println(aftcnt + "건 저장되었습니다"); break;
-			case "4": break;
-			case "5": break;
+			case "1": searchDate(); break;
+			case "2": System.out.println("조회할 아이디를 입력하세요"); 
+					  String uid = sc.nextLine(); 
+					  tuser = getTUser(uid);  
+					  // System.out.println(tuser.toString());
+					  display(tuser); 
+					  break;
+			case "3": tuser = inputData(); int aftcnt = addTUser(tuser); 
+					  System.out.println(aftcnt + "건 저장되었습니다"); break;
+			case "4":  break;
+			case "5":  break;
 			case "Q": System.out.println("프로그램을 종료합니다"); System.exit(0); break;
 			}
 			
 		} while(true); // 무한반복
 		
 		
-		
-		
 	}
+	
+
+	// 목록
+	private static void searchDate() throws ClassNotFoundException, SQLException {
+		Class.forName(driver);	
+		Connection conn = DriverManager.getConnection(url, id, pwd);
+		
+		String sql = "select * from TUSER";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		
+		ResultSet rs = pstmt.executeQuery();
+		
+		String fmt = "%s, %s, %s";
+		while (rs.next()) {
+			String id = rs.getString("ID");
+			String name = rs.getString("NAME");
+			String email = rs.getString("EMAIL");
+			String msg = String.format(fmt,id,name,email);
+			System.out.println(msg);
+		}
+	}
+	
+	// 입력받은 아이디로 한줄을 db 에서 조회
+	private static TUserDTO getTUser(String uid) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);	
+		Connection conn = DriverManager.getConnection(url, id, pwd);
+		
+		String sql = "select * from TUSER where ID = ?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		pstmt.setString(1,uid);
+		
+		TUserDTO tuser = null; // 반드시 초기화필요
+		
+		ResultSet rs = pstmt.executeQuery();
+		// primary key 라서 해당자료가 있다 없다 그래서 if문
+		if(rs.next()) {
+			String userid = rs.getString("id");
+			String username = rs.getString("name");
+			String email = rs.getString("email");		
+			tuser = new TUserDTO(userid, username, email);
+		} else {
+			
+		}
+		pstmt.close();
+		conn.close();
+		return tuser;
+	}
+	
+	// TUser 한줄을 출력한다
+	 private static void display(TUserDTO tuser) {
+		 if (tuser == null) {
+			System.out.println("조회한 자료가 없습니다");
+		} else {
+			String msg = String.format("%s %s %s",tuser.getUserid(),tuser.getUsername(),tuser.getEmail());
+			System.out.println(msg);
+		}
+	 }
+	 
 	// db insert
 	private static int addTUser(TUserDTO tuser) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
@@ -72,5 +135,4 @@ public class TestTUser {
 		TUserDTO tuser = new TUserDTO(userid, username, email);
 		return tuser;
 	}
-
 }

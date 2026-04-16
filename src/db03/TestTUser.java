@@ -1,5 +1,6 @@
 package db03;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 public class TestTUser {
 	private static String driver = "oracle.jdbc.OracleDriver";
@@ -8,6 +9,8 @@ public class TestTUser {
 	private static String pwd = "1234";
 	
 	static Scanner sc = new Scanner(System.in);
+	
+	
 	
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 		// CRUD 예제 (create,read,update,delete)
@@ -25,50 +28,99 @@ public class TestTUser {
 			
 			System.out.println("선택:");
 			String choice = sc.nextLine();
-			
+// ---------------------------------------------------------------------------------------------------------			
 			TUserDTO tuser = null;
-			
+			TUserDTO upuser = null;
+			TUserDTO deuser = null;
 			switch(choice) {
-			case "1": searchDate(); break;
+			case "1": ArrayList<TUserDTO> userList = getTUserList();
+					  displaylist(userList);
+				      break;
+				      
 			case "2": System.out.println("조회할 아이디를 입력하세요"); 
 					  String uid = sc.nextLine(); 
 					  tuser = getTUser(uid);  
 					  // System.out.println(tuser.toString());
 					  display(tuser); 
 					  break;
+					  
 			case "3": tuser = inputData(); int aftcnt = addTUser(tuser); 
-					  System.out.println(aftcnt + "건 저장되었습니다"); break;
-			case "4":  break;
-			case "5":  break;
-			case "Q": System.out.println("프로그램을 종료합니다"); System.exit(0); break;
+					  System.out.println(aftcnt + "건 저장되었습니다"); 
+					  break;
+					  
+			case "4": System.out.println("수정할 아이디를 입력하세요");
+			          String cid = sc.nextLine();
+			          tuser = getTUser(cid);
+			          System.out.println("수정할 정보를 입력하세요");
+					  upuser = updateData(); int upcnt = upTUser(upuser, cid);
+					  System.out.println(upcnt + "건 수정되었습니다");
+					  break;
+					  
+			case "5": System.out.println("삭제할 아이디를 입력하세요");
+					  String did = sc.nextLine();
+					  tuser = getTUser(did); 
+					  int decnt = deTUser(deuser,did);
+					  System.out.println(decnt + "건 삭제되었습니다");
+					  break;
+					  
+			case "q": System.out.println("프로그램을 종료합니다"); System.exit(0); break;
 			}
-			
 		} while(true); // 무한반복
-		
-		
 	}
-	
 
-	// 목록
-	private static void searchDate() throws ClassNotFoundException, SQLException {
+
+
+//---------------------------------------------------------------------------------------------------------------------------
+	// 전체 목록 조회
+	private static ArrayList<TUserDTO> getTUserList() throws ClassNotFoundException, SQLException {
 		Class.forName(driver);	
 		Connection conn = DriverManager.getConnection(url, id, pwd);
 		
-		String sql = "select * from TUSER";
+		String sql = "select * from TUSER order by id";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
 		
 		ResultSet rs = pstmt.executeQuery();
 		
-		String fmt = "%s, %s, %s";
+		ArrayList<TUserDTO> userList = new ArrayList<>();
+		
 		while (rs.next()) {
-			String id = rs.getString("ID");
-			String name = rs.getString("NAME");
-			String email = rs.getString("EMAIL");
-			String msg = String.format(fmt,id,name,email);
-			System.out.println(msg);
+			String userid = rs.getString("id");
+			String username = rs.getString("name");
+			String email = rs.getString("email");
+			
+			TUserDTO tuser = new TUserDTO(userid,username,email);
+			userList.add(tuser);
 		}
+		
+		rs.close();
+		pstmt.close();
+		conn.close();
+		
+		return userList;
 	}
 	
+	// 전체 목록 출력
+	private static void displaylist(ArrayList<TUserDTO> userList) {
+		if (userList.size() == 0) {
+			System.out.println("조회한 자료가없습니다");
+			return;
+		}
+	
+		String msg = "";
+		for (TUserDTO tuser : userList) {
+			String userid = tuser.getUserid();
+			String username = tuser.getUsername();
+			String email = tuser.getEmail();
+			msg = """
+				  %s %s %s
+					""".formatted(userid,username,email);
+				System.out.print(msg);
+		}
+		System.out.println("Press enter key.....");
+		sc.nextLine();
+	}
+
+// ----------------------------------------------------------------------------------------------------------------
 	// 입력받은 아이디로 한줄을 db 에서 조회
 	private static TUserDTO getTUser(String uid) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);	
@@ -76,7 +128,7 @@ public class TestTUser {
 		
 		String sql = "select * from TUSER where ID = ?";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
-		pstmt.setString(1,uid);
+		pstmt.setString(1,uid.toUpperCase());
 		
 		TUserDTO tuser = null; // 반드시 초기화필요
 		
@@ -103,8 +155,11 @@ public class TestTUser {
 			String msg = String.format("%s %s %s",tuser.getUserid(),tuser.getUsername(),tuser.getEmail());
 			System.out.println(msg);
 		}
+		 System.out.println("Press enter key.....");
+		 sc.nextLine();
 	 }
-	 
+
+// --------------------------------------------------------------------------------------------------------------------
 	// db insert
 	private static int addTUser(TUserDTO tuser) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
@@ -135,4 +190,53 @@ public class TestTUser {
 		TUserDTO tuser = new TUserDTO(userid, username, email);
 		return tuser;
 	}
+// -----------------------------------------------------------------------------------
+	// 수정 데이터 키보드로 입력받는다
+	private static TUserDTO updateData() {
+		System.out.println("아이디:");
+		String userid = sc.nextLine();
+		System.out.println("이름:");
+		String username = sc.nextLine();
+		System.out.println("이메일:");
+		String email = sc.nextLine();
+		
+		TUserDTO tuser = new TUserDTO(userid, username, email);
+		return tuser;
+		}
+	// 수정
+	private static int upTUser(TUserDTO tuser, String oldid) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);
+		Connection conn = DriverManager.getConnection(url, id, pwd);
+		
+		String sql = "update TUSER set id=?, name=?, email=? where id=?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		pstmt.setString(1,tuser.getUserid());
+		pstmt.setString(2,tuser.getUsername());
+		pstmt.setString(3,tuser.getEmail());
+		pstmt.setString(4,oldid);
+		
+		int aftcnt1 = pstmt.executeUpdate();
+		
+		pstmt.close();
+		conn.close();
+		
+		return aftcnt1;
+		}
+// -------------------------------------------------------------------------------------
+
+	private static int deTUser(TUserDTO tuser, String did) throws ClassNotFoundException, SQLException {
+		Class.forName(driver);
+		Connection conn = DriverManager.getConnection(url, id, pwd);
+		
+		String sql = "delete from TUSER where id=?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		pstmt.setString(1,did);
+		
+		int decnt = pstmt.executeUpdate();
+		
+		pstmt.close();
+		conn.close();
+			return decnt;
+		}
+
 }

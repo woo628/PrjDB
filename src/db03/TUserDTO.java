@@ -13,6 +13,10 @@ public class TUserDTO {
 		this.username = username;
 		this.email = email;
 	}
+	public TUserDTO(String username, String email) {
+		this.username = username;
+		this.email = email;
+	}
 	// get&set
 	public String getUserid() {
 		return userid;

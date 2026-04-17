@@ -49,7 +49,7 @@ public class TestTUser {
 					  break;
 					  
 			case "4": System.out.println("수정할 아이디를 입력하세요");
-			          String cid = sc.nextLine();
+			          String cid = sc.nextLine().toUpperCase();
 			          tuser = getTUser(cid);
 			          System.out.println("수정할 정보를 입력하세요");
 					  upuser = updateData(); int upcnt = upTUser(upuser, cid);
@@ -193,37 +193,35 @@ public class TestTUser {
 // -----------------------------------------------------------------------------------
 	// 수정 데이터 키보드로 입력받는다
 	private static TUserDTO updateData() {
-		System.out.println("아이디:");
-		String userid = sc.nextLine();
+	
 		System.out.println("이름:");
 		String username = sc.nextLine();
 		System.out.println("이메일:");
 		String email = sc.nextLine();
 		
-		TUserDTO tuser = new TUserDTO(userid, username, email);
+		TUserDTO tuser = new TUserDTO(username, email);
 		return tuser;
 		}
 	// 수정
-	private static int upTUser(TUserDTO tuser, String oldid) throws ClassNotFoundException, SQLException {
+	private static int upTUser(TUserDTO tuser, String cid) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, id, pwd);
 		
-		String sql = "update TUSER set id=?, name=?, email=? where id=?";
+		String sql = "update TUSER set name=?, email=? where id=?";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
-		pstmt.setString(1,tuser.getUserid());
-		pstmt.setString(2,tuser.getUsername());
-		pstmt.setString(3,tuser.getEmail());
-		pstmt.setString(4,oldid);
+		pstmt.setString(1,tuser.getUsername());
+		pstmt.setString(2,tuser.getEmail());
+		pstmt.setString(3,cid);
 		
-		int aftcnt1 = pstmt.executeUpdate();
+		int upcnt = pstmt.executeUpdate();
 		
 		pstmt.close();
 		conn.close();
 		
-		return aftcnt1;
+		return upcnt;
 		}
 // -------------------------------------------------------------------------------------
-
+	// 삭제
 	private static int deTUser(TUserDTO tuser, String did) throws ClassNotFoundException, SQLException {
 		Class.forName(driver);
 		Connection conn = DriverManager.getConnection(url, id, pwd);

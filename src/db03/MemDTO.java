@@ -10,7 +10,6 @@ public class MemDTO {
 	
 	public MemDTO() {}
 	public MemDTO(int num, String name, String id, String email, String pwd, String day) {
-		super();
 		this.num = num;
 		this.name = name;
 		this.id = id;

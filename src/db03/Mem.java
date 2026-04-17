@@ -72,10 +72,13 @@ public class Mem {
 			ResultSet rs = pstmt.executeQuery();
 			
 			if(rs.next()) {
-				String userid = rs.getString("id");
-				String username = rs.getString("name");
-				String email = rs.getString("email");		
-				user = new MemDTO(0, username, userid, email, username, email);
+				int num = rs.getInt("num");
+				String name = rs.getString("name");
+				String id = rs.getString("id");
+				String email = rs.getString("email");
+				String pwd = rs.getString("pwd");
+				String day = rs.getString("day");
+				user = new MemDTO(num, name, id, email, pwd, day);
 			} else {}
 			pstmt.close();
 			conn.close();
